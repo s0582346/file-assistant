@@ -1,0 +1,6 @@
+mcp
+fastapi
+uvicorn
+anthropic
+pdfplumber
+python-dotenv
