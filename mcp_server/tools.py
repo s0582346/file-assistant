@@ -1,8 +1,7 @@
 from pathlib import Path
 
-from src.document_reader import list_documents, read_document
-
-RESOURCES_DIR = Path(__file__).parent.parent / "resources"
+from src.config import settings
+from src.services.document_reader import list_documents, read_document
 
 
 def register_tools(mcp):
@@ -10,12 +9,12 @@ def register_tools(mcp):
 
     @mcp.tool()
     def scan_documents(directory: str = "") -> str:
-        """List all supported receipt/invoice files in a directory.
+        """List all supported business document files in a directory.
 
         Args:
             directory: Path to scan. Defaults to the resources folder.
         """
-        target = directory if directory else str(RESOURCES_DIR)
+        target = directory if directory else str(settings.resources_dir)
 
         try:
             files = list_documents(target)
@@ -29,21 +28,28 @@ def register_tools(mcp):
         return f"Found {len(files)} document(s):\n" + "\n".join(lines)
 
     @mcp.tool()
-    def extract_receipt(file_name: str) -> str:
-        """Extract structured data from a receipt or invoice in the resources folder.
+    def extract_document(file_name: str) -> str:
+        """Classify and extract structured data from a business document.
+
+        Auto-detects whether the document is an invoice, receipt, or payslip and
+        extracts the matching field set. Supports PDF and image files (PNG, JPG,
+        JPEG, WEBP, GIF).
 
         Args:
             file_name: Name of the file in the resources folder (e.g. 'invoice.pdf').
         """
-        file_path = RESOURCES_DIR / file_name
+        file_path = settings.resources_dir / file_name
 
         if not file_path.exists():
             return f"Error: file '{file_name}' not found in resources."
 
         try:
-            data = read_document(str(file_path))
+            doc_type, fields = read_document(str(file_path))
         except ValueError as e:
             return f"Error: {e}"
 
-        lines = [f"{key}: {value}" for key, value in data.items()]
-        return "\n".join(lines)
+        header = f"Document type: {doc_type.value}"
+        if not fields:
+            return header + "\n(no fields extracted)"
+        lines = [f"{key}: {value}" for key, value in fields.items()]
+        return header + "\n" + "\n".join(lines)
