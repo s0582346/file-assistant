@@ -1,0 +1,9 @@
+Alembic migrations.
+
+Common commands (run from project root):
+
+  alembic revision --autogenerate -m "describe change"
+  alembic upgrade head
+  alembic downgrade -1
+  alembic current
+  alembic history
