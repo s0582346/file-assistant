@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: file-assistant-postgres
+    environment:
+      POSTGRES_USER: fileassistant
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: fileassistant
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fileassistant -d fileassistant"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
